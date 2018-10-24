@@ -480,18 +480,27 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         private let parentCtxt:ViewController?
         private let uiBoxAll:[Int:UIButton?]?
         private var uiBoxSelected:UIButton?
+        private var cpuFirstMove:[Int:[Int]]?
+        private var isFirstMove:Bool?
         
         // Constructor
         init( name:String, typeBox:String, context:ViewController ){
             playerName    = "CPU"
             playerTypeBox = typeBox
             parentCtxt    = context
+            isFirstMove   = true
             
             // Cajas de juego (Fichas)
             uiBoxAll = [
                 1:parentCtxt?.uiBox1, 2:parentCtxt?.uiBox2, 3:parentCtxt?.uiBox3,
                 4:parentCtxt?.uiBox4, 5:parentCtxt?.uiBox5, 6:parentCtxt?.uiBox6,
                 7:parentCtxt?.uiBox7, 8:parentCtxt?.uiBox8, 9:parentCtxt?.uiBox9
+            ]
+            
+            // Define la primeras jugadas que puede hacer la cpu
+            cpuFirstMove = [
+                7:[5], 1:[5], 3:[5], 9:[5],
+                5:[7,9,1,3], 8:[7,5,9,2]
             ]
         }
         
@@ -676,40 +685,66 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                     }
                 }
                 
-                //Obtener estrategia para mover
-                var movementStatistics:[Int:[String:Int]] = [Int:[String:Int]]()
-                var pieceCount = 0
-                for pieceAvail in pieceAvailable{
-                    for (_,value2) in winningMovement![pieceAvail]!{ // 2
-                        if let _ = value2 {
-                            if( pieceCount != 0 ){
-                                pieceCount = 0
-                            }
-                            for piece in value2! { // 3
-                                if( player1Board![piece]! || playerCPUBoard![piece]! ){
-                                }else{
-                                    if( movementStatistics[pieceAvail] == nil ){
-                                        let statistics = [ "count":0, "piece":0 ]
-                                        movementStatistics.updateValue(statistics, forKey: pieceAvail)
-                                    }
-                                    pieceCount += 1
-                                    movementStatistics[pieceAvail]!["count"] = pieceCount
-                                    movementStatistics[pieceAvail]!["piece"] = piece
-                                }
-                            }// fin del ciclo 3
+                // ----- firstMove CPU ---- //
+                var firstMovePiece = 0
+                if( isFirstMove! ){
+                    isFirstMove = false
+                    for (piece,value1) in player1Board! {
+                        if( firstMovePiece != 0 ){
+                            break;
                         }
-                    }// fin del ciclo 2
-                }// Fin del ciclo
+                        if( value1 ){
+                            if( cpuFirstMove![piece]! == nil ){
+                                break;
+                            }else{
+                                for firstPiece in cpuFirstMove![piece]!{
+                                    firstMovePiece = firstPiece
+                                    break;
+                                }// fin del ciclo
+                            }
+                        }
+                    }// fin del ciclo
+                }
                 
-                // Se analiza la mejor opcion para realizar la movida
-                var movedForStatistic = 0
+                // Si no haya primera jugada estrategica
                 var selectedMove = 0
-                for (_,value) in movementStatistics{
-                    if( movedForStatistic < value["count"]! ){
-                        movedForStatistic = value["count"]!
-                        selectedMove = value["piece"]!
-                    }
-                }// Fin del ciclo
+                if( firstMovePiece == 0 ){
+                    //Obtener estrategia para mover
+                    var movementStatistics:[Int:[String:Int]] = [Int:[String:Int]]()
+                    var pieceCount = 0
+                    for pieceAvail in pieceAvailable{
+                        for (_,value2) in winningMovement![pieceAvail]!{ // 2
+                            if let _ = value2 {
+                                if( pieceCount != 0 ){
+                                    pieceCount = 0
+                                }
+                                for piece in value2! { // 3
+                                    if( player1Board![piece]! || playerCPUBoard![piece]! ){
+                                    }else{
+                                        if( movementStatistics[pieceAvail] == nil ){
+                                            let statistics = [ "count":0, "piece":0 ]
+                                            movementStatistics.updateValue(statistics, forKey: pieceAvail)
+                                        }
+                                        pieceCount += 1
+                                        movementStatistics[pieceAvail]!["count"] = pieceCount
+                                        movementStatistics[pieceAvail]!["piece"] = piece
+                                    }
+                                }// fin del ciclo 3
+                            }
+                        }// fin del ciclo 2
+                    }// Fin del ciclo
+                    
+                    // Se analiza la mejor opcion para realizar la movida
+                    var movedForStatistic = 0
+                    for (_,value) in movementStatistics{
+                        if( movedForStatistic < value["count"]! ){
+                            movedForStatistic = value["count"]!
+                            selectedMove = value["piece"]!
+                        }
+                    }// Fin del ciclo
+                }else{
+                    selectedMove = firstMovePiece
+                }
                 
                 // Configura la fichas seleccionada
                 setUiBoxMove(pieceSelect: selectedMove)
