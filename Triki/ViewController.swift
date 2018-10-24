@@ -694,7 +694,7 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                             break;
                         }
                         if( value1 ){
-                            if( cpuFirstMove![piece]! == nil ){
+                            if( cpuFirstMove?[piece] == nil ){
                                 break;
                             }else{
                                 for firstPiece in cpuFirstMove![piece]!{
