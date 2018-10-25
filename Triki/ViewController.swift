@@ -43,6 +43,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
     
     // Funcion que se encarga de a listar las configuraciones del juego
     private func prepareGame(){
+        mainControl = nil
+        player1     = nil
         mainControl = MainControl( context: self )
         player1     = Player(name: "Luis", typeBox: "Nought")
     }
@@ -77,14 +79,28 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 // Indentifica el jugador
                 switch( mainControl?.getCurrentPlayer() ){
                     case 1: // Player 1
-                        if( player1?.getPlayerBoard()[sender.tag] == false ){
+                        var canSelectedPiece = false;
+                        if( mainControl?.getModeSelected() == 0 ){ // 2 Player
+                            if( player1?.getPlayerBoard()[sender.tag] == false &&
+                                player2?.getPlayerBoard()[sender.tag] == false ){
+                                canSelectedPiece = true
+                            }
+                        }else
+                        if( mainControl?.getModeSelected() == 1 ){
+                            if( player1?.getPlayerBoard()[sender.tag] == false &&
+                                playerCPU?.getPlayerBoard()[sender.tag] == false ){
+                                canSelectedPiece = true
+                            }
+                        }
+                        if( canSelectedPiece ){
                             mainControl?.currentPlayer(player: 1)
                             mainControl?.setMovementBoard(movedPlayed: sender)
                             mainControl?.checkPlayerMovement(movedPlayed: sender)
                         }
                         break;
                     case 2: // Player 2
-                        if( player2?.getPlayerBoard()[sender.tag] == false ){
+                        if( player1?.getPlayerBoard()[sender.tag] == false &&
+                            player2?.getPlayerBoard()[sender.tag] == false ){
                             mainControl?.currentPlayer(player: 2)
                             mainControl?.setMovementBoard(movedPlayed: sender)
                             mainControl?.checkPlayerMovement(movedPlayed: sender)
@@ -164,9 +180,11 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 modeSelected = 0
             }
             if( modeSelected == 0 ){ // 2 Player
+                parentCtxt?.player2 = nil
                 parentCtxt?.player2 = Player(name: "other", typeBox: "Cross")
             }else
             if( modeSelected == 1 ){ // CPU
+                parentCtxt?.playerCPU = nil
                 parentCtxt?.playerCPU = CPUPlayer(name: "other", typeBox: "Cross", context: parentCtxt!)
             }
             parentCtxt?.gameModePicker.isUserInteractionEnabled = false
