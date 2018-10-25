@@ -481,14 +481,15 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
         private let uiBoxAll:[Int:UIButton?]?
         private var uiBoxSelected:UIButton?
         private var cpuFirstMove:[Int:[Int]]?
-        private var isFirstMove:Bool?
+        private var cpuTwoMove:[Int:[Int:[Int]]]?
+        private var firstTwoMoveCPU:Int?
         
         // Constructor
         init( name:String, typeBox:String, context:ViewController ){
-            playerName    = "CPU"
-            playerTypeBox = typeBox
-            parentCtxt    = context
-            isFirstMove   = true
+            playerName      = "CPU"
+            playerTypeBox   = typeBox
+            parentCtxt      = context
+            firstTwoMoveCPU = 1
             
             // Cajas de juego (Fichas)
             uiBoxAll = [
@@ -497,12 +498,20 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 7:parentCtxt?.uiBox7, 8:parentCtxt?.uiBox8, 9:parentCtxt?.uiBox9
             ]
             
-            // Define la primeras jugadas que puede hacer la cpu
+            // Pack para la primera jugada de la CPU
             cpuFirstMove = [
                 7:[5], 1:[5], 3:[5], 9:[5],
                 5:[7,9,1,3], 8:[7,5,9,2]
             ]
-        }
+            
+            // Pack para la segunda jugada de la CPU
+            cpuTwoMove = [
+                7:[3:[4]], 3:[7:[8]],
+                9:[1:[6]], 1:[9:[2]],
+                8:[4:[5]]
+            ]
+            
+        }// Fin del costructor
         
         // Obtiene el tablero actual del jugador
         public func getPlayerBoard()->[Int:Bool]{
@@ -687,8 +696,8 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                 
                 // ----- firstMove CPU ---- //
                 var firstMovePiece = 0
-                if( isFirstMove! ){
-                    isFirstMove = false
+                if( firstTwoMoveCPU == 1 ){
+                    firstTwoMoveCPU! += 1
                     for (piece,value1) in player1Board! {
                         if( firstMovePiece != 0 ){
                             break;
@@ -701,6 +710,25 @@ class ViewController: UIViewController, UIPickerViewDelegate, UIPickerViewDataSo
                                     firstMovePiece = firstPiece
                                     break;
                                 }// fin del ciclo
+                            }
+                        }
+                    }// fin del ciclo
+                }else
+                if( firstTwoMoveCPU == 2 ){
+                    firstTwoMoveCPU! = 0
+                    for (piece,value) in player1Board! {
+                        if( firstMovePiece != 0 ){
+                            break;
+                        }
+                        if( value ){
+                            if( cpuTwoMove?[piece] == nil ){
+                            }else{
+                                for (playertwoPiece,value2)  in cpuTwoMove![piece]!{ // 2
+                                    if( player1Board![playertwoPiece]! ){
+                                        firstMovePiece = value2[0];
+                                        break;
+                                    }
+                                } // fin del ciclo 2
                             }
                         }
                     }// fin del ciclo
